@@ -8,7 +8,7 @@ from gui import create_window
 
 def main():
 
-        # Check that required OneDrive/SharePoint folders exist before doing anything else
+    # Check that required OneDrive/SharePoint folders exist before doing anything else
     missing_folders = [
         folder for folder in [JHA_Folder, WO_Folder]
         if not folder.exists()

@@ -1,6 +1,8 @@
 #Tkinter window, buttons, labels, status messages
 import tkinter as tk # names tkinter tk
-from file_manager import move_pdf
+from file_manager import move_pdf, get_latest_pdf, open_pdf
+from validators import extract_site_number
+from config import change_folder
 
 BACKGROUND = "#1e1e1e"
 FRAME_COLOR = "#2b2b2b"
@@ -17,7 +19,9 @@ def create_window(pdf, site_number):
     root.configure(bg=BACKGROUND)
 
     root.title("PDF File/Folder Automation")
-    root.geometry("500x400")
+    root.geometry("500x450")
+
+    current_pdf = {"value": pdf}
 
     #job options
     selected_document = tk.StringVar()
@@ -36,7 +40,7 @@ def create_window(pdf, site_number):
     def select_document(document):
 
         selected_document.set(document)
-
+        #changing the visual and button color of JHA and WO buttons based on selection
         if document == "JHA":
             jha_button.config(
                 relief="sunken",
@@ -55,7 +59,7 @@ def create_window(pdf, site_number):
                 relief="raised",
                 bg="SystemButtonFace"
             )
-
+    #changing the visual and button color of Approved and Needs Fixing buttons based on selection
     def select_status(status):
         if status == "Approved":
             approved_button.config(
@@ -75,7 +79,7 @@ def create_window(pdf, site_number):
                 relief="raised",
                 bg="SystemButtonFace"
             )
-
+    
     pdf_frame = tk.Frame(
         root,
         bg=FRAME_COLOR,
@@ -98,14 +102,16 @@ def create_window(pdf, site_number):
         pady=(0,0)
     )
 
-    tk.Label(
+    pdf_name_label = tk.Label(
         pdf_frame,
         text=pdf.name,
         bg=FRAME_COLOR,
         fg=TEXT_COLOR,
         font=NORMAL_FONT,
         wraplength=400
-    ).pack(
+    )
+    
+    pdf_name_label.pack(
         pady=(0,10)
     )
 
@@ -127,13 +133,15 @@ def create_window(pdf, site_number):
     ).pack(
         pady=(5,0)
     )
-    tk.Label(
+    site_number_label = tk.Label(
         pdf_frame,
         text=site_number if site_number else "Site Not Detected",
         bg=FRAME_COLOR,
         fg=TEXT_COLOR,  
         font=SECTION_FONT
-    ).pack(
+    )
+    
+    site_number_label.pack(
         pady=(0,5)
     )
 
@@ -269,15 +277,49 @@ def create_window(pdf, site_number):
     )
     
     status_label = tk.Label(
-        submit_frame,
+        submit_container,
         text="",
         bg = BACKGROUND,
         fg="white",
         font=NORMAL_FONT
     )
-    
-    #Submit Button
 
+    def refresh_pdf():
+        #calls the new pdf to be = to the return value of the latest pdf
+        new_pdf = get_latest_pdf()
+        #if there is no new pdf print out and return
+        if new_pdf is None:
+            pdf_name_label.config(text="No PDF found in Downloads.")
+            site_number_label.config(text="Site Not Detected")
+            return
+        #if there is new pdf set the current value to it
+        current_pdf["value"] = new_pdf
+        #configure it
+        pdf_name_label.config(text=new_pdf.name)
+        #pull the site number from the new pdf
+        new_site_number = extract_site_number(new_pdf.name)
+        #print the site number if there is not site number return statement
+        site_number_label.config(text=new_site_number if new_site_number else "Site Not Detected")
+        #open the pdf
+        open_pdf(new_pdf)
+        #if its a JHA select the JHA option
+        if "JHA" in new_pdf.name.upper():
+            select_document("JHA")
+        #if its a WO select the WO option
+        elif "WO" in new_pdf.name.upper():
+            select_document("WO")
+        
+        status_label.config(text="")
+
+    #change_folders button
+    def change_folders():
+        change_folder("JHA_Folder", "JHA - Autozone")
+        change_folder("WO_Folder", "WO - Autozone")
+        status_label.config(
+            text="Folders changed successfully.",
+            fg="lime green"
+        )
+    #Submit Button
     def submit():
 
         document_type = selected_document.get()
@@ -286,12 +328,15 @@ def create_window(pdf, site_number):
         if status_type != "Approved":
             print("Needs fixing selected")
             return
+        
+        current_site_number = extract_site_number(current_pdf["value"].name)
+
         print(f"Document Type: {document_type}")
         print(f"Status Type: {status_type}")
         success, message = move_pdf(
-            pdf,
+            current_pdf["value"],
             document_type,
-            site_number
+            current_site_number     
         )
 
         if success:
@@ -304,7 +349,15 @@ def create_window(pdf, site_number):
                 text=message,
                 fg="red"
             )
-
+    tk.Button(
+        submit_frame, 
+        text="Refresh PDF",
+        width=15,
+        command=refresh_pdf
+    ).pack(
+        side="left",
+        padx=10
+    )
     tk.Button(
         submit_frame,
         text="Submit",
@@ -314,9 +367,18 @@ def create_window(pdf, site_number):
         side="left"
     )
 
-    status_label.pack(
+    tk.Button(
+        submit_frame,
+        text="Change_Folder",
+        width=15,
+        command=change_folders       
+    ).pack(
         side="left",
-        padx=15
+        padx=10
+    )
+
+    status_label.pack(
+        pady=(5,10)
     )
 
 
