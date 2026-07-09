@@ -1,0 +1,15 @@
+# Python cache files
+__pycache__/
+*.pyc
+
+# PyInstaller files
+build/
+embedpython/
+dist/
+*.spec
+
+# Private configuration
+config.py
+
+# VS Code settings
+.vscode/
