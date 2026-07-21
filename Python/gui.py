@@ -1,8 +1,9 @@
 #Tkinter window, buttons, labels, status messages
 import tkinter as tk # names tkinter tk
+from tkinter import messagebox
 from file_manager import move_pdf, get_latest_pdf, open_pdf
 from validators import extract_site_number
-from config import change_folder
+from config import change_folder, log_usage
 
 BACKGROUND = "#1e1e1e"
 FRAME_COLOR = "#2b2b2b"
@@ -35,7 +36,7 @@ def create_window(pdf, site_number):
     wo_button = None
 
     approved_button = None
-    fixing_button = None
+    deleting_button = None
 
     def select_document(document):
 
@@ -59,19 +60,21 @@ def create_window(pdf, site_number):
                 relief="raised",
                 bg="SystemButtonFace"
             )
-    #changing the visual and button color of Approved and Needs Fixing buttons based on selection
+
+
+    #changing the visual and button color of Approved and Delete PDF buttons based on selection
     def select_status(status):
         if status == "Approved":
             approved_button.config(
                 relief="sunken",
                 bg="#555555"
             )
-            fixing_button.config(
+            deleting_button.config(
                 relief="raised",
                 bg="SystemButtonFace"
             )
-        elif status == "Needs Fixing":
-            fixing_button.config(
+        elif status == "Delete PDF":
+            deleting_button.config(
                 relief="sunken",
                 bg="#555555"
             )
@@ -104,7 +107,7 @@ def create_window(pdf, site_number):
 
     pdf_name_label = tk.Label(
         pdf_frame,
-        text=pdf.name,
+        text=pdf.name if pdf else "No PDF found in Downloads",
         bg=FRAME_COLOR,
         fg=TEXT_COLOR,
         font=NORMAL_FONT,
@@ -237,24 +240,25 @@ def create_window(pdf, site_number):
         padx=5
     )
 
-    fixing_button = tk.Button(
+    deleting_button = tk.Button(
         status_buttons,
-        text="Needs Fixing",
+        text="Delete PDF",
         width=12,
-        command=lambda: select_status("Needs Fixing")
+
+        command=lambda: handle_delete()
     )
-    fixing_button.pack(
+    deleting_button.pack(
         side="left",
         padx=5
     )
 
     #automatically selects approved
     select_status("Approved")
-
+    
     #automatically selects document type if detected
-    if "JHA" in pdf.name.upper():
+    if pdf and "JHA" in pdf.name.upper():
         select_document("JHA")
-    elif "WO" in pdf.name.upper():
+    elif pdf and "WO" in pdf.name.upper():
         select_document("WO")
 
 
@@ -311,6 +315,36 @@ def create_window(pdf, site_number):
         
         status_label.config(text="")
 
+    def handle_delete():
+    #closes the PDF and deletes it
+        if current_pdf["value"] is None:
+            status_label.config(text = "No PDF loaded to delete.", fg = "red")
+            return
+
+        confirm = messagebox.askyesno(
+            "Comfirm Delete",
+            f"Are you sure you want to permanently delete :\n{current_pdf['value'].name}?"
+        )
+
+        if not confirm:
+            return
+
+        try:
+            deleted_document_type = selected_document.get()
+            current_pdf["value"].unlink()
+            log_usage("deleted", deleted_document_type)
+            status_label.config(text=f"{current_pdf['value'].name} deleted.", fg ="orange")
+            current_pdf["value"] = None
+            pdf_name_label.config(text="No PDF loaded")
+            site_number_label.config(text="Site Not Detected")
+        except PermissionError:
+            status_label.config(
+                text="Couldn't delete - The PDF is open in another program. Close it and try again",
+                fg="red"
+            )
+        except Exception as error:
+            status_label.config(text=f"Couldn't delete file: {error}", fg="red")
+
     #change_folders button
     def change_folders():
         change_folder("JHA_Folder", "JHA - Autozone")
@@ -321,12 +355,16 @@ def create_window(pdf, site_number):
         )
     #Submit Button
     def submit():
-
+        if current_pdf["value"] is None:
+            status_label.config(text="No PDF loaded. Try Refresh PDF.", fg="red")
+            return
+        
         document_type = selected_document.get()
         status_type = selected_status.get()
 
+
         if status_type != "Approved":
-            print("Needs fixing selected")
+            print("Delete PDF Selected")
             return
         
         current_site_number = extract_site_number(current_pdf["value"].name)
@@ -340,6 +378,7 @@ def create_window(pdf, site_number):
         )
 
         if success:
+            log_usage("moved", document_type)
             status_label.config(
                 text=message,
                 fg="lime green"

@@ -8,8 +8,11 @@ embedpython/
 dist/
 *.spec
 
-# Private configuration
-config.py
+# Personal settings — folder paths for this user's machine
+settings.json
+
+# To withhold users names
+user_id_map.json
 
 # VS Code settings
 .vscode/

@@ -11,7 +11,7 @@ def main():
     # Check that required OneDrive/SharePoint folders exist before doing anything else
     missing_folders = [
         folder for folder in [JHA_Folder, WO_Folder]
-        if not folder.exists()
+        if folder is None or not folder.exists()
     ]
 
     if missing_folders:
@@ -27,12 +27,7 @@ def main():
     latest_pdf = get_latest_pdf()
 
     if latest_pdf is None:
-
-        messagebox.showerror(
-            "Error",
-            "No PDFs found in Downloads."
-        )
-
+        create_window(None, None)
         return
     
     site_number = extract_site_number(

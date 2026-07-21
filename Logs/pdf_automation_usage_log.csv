@@ -1,0 +1,12 @@
+Total Unique Users,1
+Total Files Moved,3
+Total JHA Moved,0
+Total WO Moved,3
+Total Files Deleted,2
+
+Timestamp,User,Action,Document Type
+2026-07-20 06:46 AM,User1,Moved,WO
+2026-07-21 01:02 AM,User1,Moved,WO
+2026-07-21 01:07 AM,User1,Deleted,
+2026-07-21 02:07 AM,User1,Moved,WO
+2026-07-21 02:08 AM,User1,Deleted,WO

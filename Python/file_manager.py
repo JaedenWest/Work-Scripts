@@ -16,6 +16,9 @@ def move_pdf(pdf_path, document_type, site_number):
     else:
         return False, "Invalid document type"
     
+    if not site_number:
+        return False, "No site number detected- cannot determine destination folder"
+    
     # pad the site number with leading zeros to make it 4 digits
     folder_name = site_number.zfill(4)
 
@@ -24,7 +27,7 @@ def move_pdf(pdf_path, document_type, site_number):
     
     #dont allow duplicate folders
     if site_folder.exists():
-        return False, f"Folder {folder_name} already exists."
+        return False, f"Folder {folder_name} in {document_type} already exists."
     site_folder.mkdir()
 
     # Move the PDF to the appropriate folder
@@ -51,3 +54,5 @@ def get_latest_pdf():
 def open_pdf(pdf_path):
     #opens PDF using the default windows program
     os.startfile(pdf_path)
+
+

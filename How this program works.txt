@@ -1,9 +1,19 @@
 How this works
+
+IT DOES NOT AUTO CHECK THE AUTOZONE WO OR JHA
+
 1. It pulls from the most recent pdf you downloaded and opens it
 2. It will auto find the site number from the file name
 3. If it has JHA or WO in its name it will auto select that option
+
 4. The user reviews the JHA or WO and if its good, with approved already selected you can hit submit
+
 5.It will create a folder in the JHA or WO folder
 6. The folder with be the site number, it will automatically fill the digits with 0s up to 4 digits and then drag the pdf into it
 7. It will say if the file has moved successfully, or if it already existed.
-8. If moved successfully you can close app and reopen when next pdf is downloaded
+8. If moved successfully you can click refresh pdf the next time you download one
+
+Things to Note:
+It only works for Autozone at the moment, it pulls the site number from the first 4 or less digits it sees, in theory you can select folders for other things and it would path to them, however things like NCR phase 2 has site number names like 1_375 instead of 1375 that I haven't adjusted as I don't work on that project for night shift.
+
+Needs Fixing does not do anything at the moment I plan to change it to close the pdf and delete it. 
